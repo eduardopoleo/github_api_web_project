@@ -219,8 +219,8 @@ module GitHubAPI
         builder.use Middleware::StatusCheck
         builder.use Middleware::Authentication, @token
         builder.use Middleware::JSONParsing
-        builder.use Middleware::Logging
-        builder.use Middleware::Cache, Storage::Redis.new
+        builder.use Middleware::Logging, Rails.logger
+        builder.use Middleware::Cache, Rails.cache
         builder.adapter Faraday.default_adapter
       end
     end
