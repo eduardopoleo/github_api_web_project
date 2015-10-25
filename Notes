@@ -1,0 +1,65 @@
+Making a conclusion recipe to sum everything up will be really appreciated.
+
+- gem install the gem 'omniauth-github'
+
+- Create application
+  https://github.com/settings/applications/new
+
+- Add the keys provided by github t
+  ENV['GITHUB_APP_KEY']
+  ENV['GITHUB_APP_SECRET']
+
+- Set the omniauth builder in the config file
+  config/initializers/omniauth.rb
+  Rails.application.config.middleware.use OmniAuth::Builder do
+    provider :github, ENV['GITHUB_APP_KEY'], ENV['GITHUB_APP_SECRET'], scope: "user, gist" Not really sure what these scopes are
+  end
+
+- Create user model to store the user attributes
+    t.string :provider
+    t.string :remote_id
+    t.string :name
+    t.string :token
+
+- get '/auth/:provider/callback' Is this a route set by the gem
+  routes:
+    get '/auth/:provider/callback', to: 'sessions#create'
+    get '/auth/failure', to: 'sessions#failure'
+    delete '/sessions', to: 'sessions#destroy'
+
+  Controller:
+    class SessionsController < ApplicationController
+      def create
+        auth = request.env["omniauth.auth"]
+        @user = User.find_or_create_by!(remote_id: auth.uid, provider: "github") do |user|
+          user.name = auth.info.nickname
+          user.token = auth.credentials.token
+        end
+        session[:user_id] = @user.id
+        flash[:info] = "You have signed in with GitHub."
+        redirect_to root_path
+      end
+
+      def failure
+        flash[:danger] = "Authorization failed."
+        redirect_to root_path
+      end
+    end
+
+- Set up the log in link:
+   <p class="navbar-text"><%= link_to "Sign in with GitHub", '/auth/github' %></p>
+   This is a bit magical cus this route does not exist in the app
+
+////////////////////////////
+Assignment: Gists Index
+Wrong number of arguments when defining the Page.struck
+Page = Struct.new(:items)
+but then
+Page.new(1, 1, items)?
+
+////////////////////////////////////
+I can't log in as someone else anymore as soon as I click sign out it knows it's me!
+
+/////
+Recommend creating more than 30 gists when teaching how to post information using
+apis

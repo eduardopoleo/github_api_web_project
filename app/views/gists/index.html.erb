@@ -32,3 +32,29 @@
     </table>
   </div>
 </div>
+
+<div class="row">
+  <div class="col-lg-12">
+    <nav>
+      <ul class="pager">
+        <% if @gists.page > 1 %>
+          <li class="previous">
+            <%= link_to(page: @gists.page - 1) do %>
+              <span class="glyphicon glyphicon-arrow-left"></span> Previous Page
+            <% end %>
+          </li>
+        <% end %>
+        <!-- This is the reason for which we need these values now cus we need to know
+        When and how to display the pagination -->
+        <% if @gists.page < @gists.total_pages %>
+          <li class="next">
+            <!-- this is good old rails magic -->
+            <%= link_to(page: @gists.page + 1) do %>
+              Next Page <span class="glyphicon glyphicon-arrow-right"></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </nav>
+  </div>
+</div>

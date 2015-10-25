@@ -8,6 +8,11 @@ require_relative 'middleware/json_parsing'
 require_relative 'middleware/cache'
 require_relative 'storage/redis'
 
+#This is my wrapper. Concerns:
+# -  Error handling
+# -  Methods associated with different end points
+# -  Middleware stack
+
 module GitHubAPI
 
   class Error < StandardError; end
@@ -22,11 +27,57 @@ module GitHubAPI
   User = Struct.new(:name, :location, :public_repos)
   Event = Struct.new(:type, :repo_name)
   Repo = Struct.new(:name, :languages)
+  Gist = Struct.new(:id, :url, :description, :files, :public, :created_at)
+  Page = Struct.new(:items, :page, :total_pages)
 
   class Client
 
     def initialize(token)
       @token = token
+    end
+
+    def gists(page:1)
+      page = page.present? ? page.to_i : 1
+      url = "https://api.github.com/gists?page=#{page}"
+
+      response = connection.get(url)
+      #header parse and extracts the link form the url
+      last_page_url = header_link(response.headers, "last")
+
+      #this little bit of code parses the url further down to ge the
+      #last_page number
+      if last_page_url
+        uri = URI.parse(last_page_url)
+        total_pages = Rack::Utils.parse_query(uri.query)["page"].to_i
+      else
+        total_pages = page
+      end
+      #here this just creates all the gists from that specific request
+      items = response.body.map do |gist_data|
+        Gist.new(gist_data["id"], gist_data["html_url"], gist_data["description"], [], gist_data["public"], gist_data["created_at"])
+      end
+      #Page returns all the gists, the current page, and the total amount of pages.
+      #This is the big difference that we need to keep track of the pages before we did not care
+      #We would return the items only
+      Page.new(items, page, total_pages)
+    end
+
+    def header_link(headers, link_name)
+      header = headers["link"]
+
+      if header
+        links = header.split(",").inject({}) do |sum, link|
+          url_part, rel_part = link.split(";")
+          url = url_part.tr("<>", "").strip
+          name = rel_part.match(/rel="(.*)"/)[1].strip
+          sum[name] = url
+          sum
+        end
+      else
+        links = {}
+      end
+
+      links[link_name]
     end
 
     def user_info(username)

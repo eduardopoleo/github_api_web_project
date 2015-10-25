@@ -22,6 +22,7 @@
         <p class="navbar-text">Signed in as <%= current_user.name %>. <%= link_to "Sign out", sessions_path, method: :delete %></p>
       <% else %>
         <p class="navbar-text"><%= link_to "Sign in with GitHub", '/auth/github' %></p>
+        <!-- This is a bit magical cus this route actually does not exist  -->
       <% end %>
     </nav>
     <div class="row">
