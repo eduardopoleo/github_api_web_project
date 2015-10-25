@@ -30,7 +30,7 @@ module GitHubAPI
   Gist = Struct.new(:id, :url, :description, :files, :public, :created_at)
   Page = Struct.new(:items, :page, :total_pages)
   GistFile = Struct.new(:name, :language, :content)
-  
+
   class Client
 
     def initialize(token)
@@ -76,6 +76,16 @@ module GitHubAPI
         Gist.new(gist["id"], gist["html_url"], gist["description"], files, gist["public"], gist["created_at"])
       else
         raise NonexistentGist, "No gist found with id #{gist_id}."
+      end
+    end
+
+    def delete_gist(gist_id)
+      url = "https://api.github.com/gists/#{gist_id}"
+
+      response = connection.delete(url)
+
+      if response.status != 204
+        raise NonexistentGist, "No gist found with id #{gist_id}"
       end
     end
 

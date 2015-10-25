@@ -26,6 +26,7 @@
             <td><% if gist.public %><span class="glyphicon glyphicon-eye-open" /><% end %></td>
               <td><%= gist.created_at %></td>
               <td class="delete-button"></td>
+            <td><%= link_to "Delete", gist_path(gist.id), method: :delete, class: "btn btn-danger", data: {confirm: "Delete this gist?"} %></td>
           </tr>
         <% end %>
       </tbody>
