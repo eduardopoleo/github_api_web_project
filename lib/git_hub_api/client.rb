@@ -216,6 +216,7 @@ module GitHubAPI
 
     def connection
       @connection ||= Faraday::Connection.new do |builder|
+        builder.use Middleware::Notification
         builder.use Middleware::StatusCheck
         builder.use Middleware::Authentication, @token
         builder.use Middleware::JSONParsing
