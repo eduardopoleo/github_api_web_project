@@ -5,7 +5,22 @@ class GistsController < ApplicationController
   before_filter :require_sign_in
 
   def index
+    #it is important to notice that here the paradigm has changed
+    #we are not dealing with AR objects anymore.
+    #All the data display is obtain from the api itself
     @gists = github_api_client.gists(page: params[:page])
+  end
+
+  def new
+    @gist_form = GistForm.new
+  end
+
+  def show
+    client = GitHubAPI::Client.new(current_user.token)
+    @gist = client.gist_info(params[:id])
+  rescue GitHubAPI::NonexistentGist => e
+    flash.now[:danger] = e.message
+    render status: 404
   end
 
   def create
@@ -16,7 +31,7 @@ class GistsController < ApplicationController
                                                         @gist_form.file_name,
                                                         @gist_form.file_contents
       )
-      flash[:info] = "Your Gist has been created and ca be viewed at this url: #{gits_info.url}"
+      flash[:info] = "Your Gist has been created and ca be viewed at this url: #{gist_info.url}"
       redirect_to gists_path
     else
       render :new

@@ -67,3 +67,6 @@ apis
 //////
 Creating a Form Model
 Typo: from a form and also to prevent confusing
+
+////Assignment: Viewing a Gist
+GistFile.new, What is the purpose? Not being return to controller, not being persisted.

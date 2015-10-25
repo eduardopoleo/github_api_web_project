@@ -29,7 +29,8 @@ module GitHubAPI
   Repo = Struct.new(:name, :languages)
   Gist = Struct.new(:id, :url, :description, :files, :public, :created_at)
   Page = Struct.new(:items, :page, :total_pages)
-
+  GistFile = Struct.new(:name, :language, :content)
+  
   class Client
 
     def initialize(token)
@@ -60,6 +61,22 @@ module GitHubAPI
       #This is the big difference that we need to keep track of the pages before we did not care
       #We would return the items only
       Page.new(items, page, total_pages)
+    end
+
+    def gist_info(gist_id)
+      url = "https://api.github.com/gists/#{gist_id}"
+
+      response = connection.get(url)
+
+      if response.status == 200
+        gist = response.body
+        files = gist["files"].map do |(name, file)|
+          GistFile.new(name, file["language"], file["content"])
+        end
+        Gist.new(gist["id"], gist["html_url"], gist["description"], files, gist["public"], gist["created_at"])
+      else
+        raise NonexistentGist, "No gist found with id #{gist_id}."
+      end
     end
 
     def header_link(headers, link_name)
